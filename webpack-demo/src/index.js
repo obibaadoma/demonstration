@@ -7,35 +7,8 @@ window.onload = () => {
   const parser = new DOMParser();
   const wrapper = document.querySelector('.wrapper');
   const listsContainer = document.querySelector('.lists-container');
-  const remCompTaskBtn = document.querySelector('.clear-btn');
   const addBtn = document.querySelector('.add-btn');
   let listArray = [];
-
-  const clearAllCompleted = (i, updatedArray, newListElement) => {
-    if (newListElement.querySelector('i').checked === true) {
-      newListElement.remove();
-      window.load();
-    }
-
-    for (let i = 0; i < updatedArray.length; i += 1) {
-      listArray.Index = i + 1;
-    }
-
-    localStorage.setItem('listsKey', JSON.stringify(updatedArray));
-  };
-
-  // localStorage.removeItem('listsKey');
-  const taskCompleteUpdate = (e, index, t) => {
-    if (e.target.checked) {
-      listArray[index].completed = true;
-      t.style.textDecoration = 'line-through';
-    } else {
-      listArray[index].completed = false;
-      t.style.textDecoration = 'none';
-    }
-
-    localStorage.setItem('listsKey', JSON.stringify(listArray));
-  };
 
   // Update task list Index
   const updateTask = () => {
@@ -45,23 +18,23 @@ window.onload = () => {
     localStorage.setItem('listsKey', JSON.stringify(listArray));
   };
 
-  const removeTask = (i, newListElement) => {
-    const index = i + 1;
+  const removeTask = (e, newListElement) => {
+    const index = e.target.getAttribute('myIndex');
     newListElement.remove();
-    listArray.splice(index - 1, 1);
+    listArray.splice(index + 1, 1);
     updateTask();
   };
 
+  const listObj = new List();
   addBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    const listObj = new List();
     const inputTextValue = document.querySelector('#input-task').value;
-    const ind = 0 || listArray.length + 1;
+    const ind = null || listArray.length + 1;
     const comp = listObj.completed || false;
     const taskObj = new List(ind, comp, inputTextValue);
     listArray.push(taskObj);
-    localStorage.setItem('listsKey', JSON.stringify(listArray));
     showTask();
+    localStorage.setItem('listsKey', JSON.stringify(listArray));
     document.querySelector('#input-task').value = '';
   }); // End of addBtn event
 
@@ -69,16 +42,14 @@ window.onload = () => {
     listsContainer.innerHTML = '';
     for (let i = 0; i < listArray.length; i += 1) {
       const newList = `
-      <div class = "task-lists part">
-
-        <label class = "opacity task-label">
-        <input type="checkbox" id="${i}" ${listArray[i].completed ? 'checked' : ''}
-        name = "task" class = "input-task-class opacity">
-        ${listArray[i].description} </label>
-
+      <div class = "task-lists part"> 
+        <div class = "input-field>
+        <input type="checkbox" id="${i}" ${listArray[i].completed ? 'checked' : ''}  value="${listArray[i].description} " name = "task" class = "input-task-class opacity">
+        <label class = "opacity task-label" for="${i}"> ${listArray[i].description}  </label>
+        </div>
         <input type="text" class="edit-Input hidden" value=${listArray[i].description}>
-        <div class = "btn-group>
-          <button type = "button" class = "btn">
+        <div class = "btn-group>   
+          <button type = "button" class = " btn">
             <i class='fas fa-ellipsis-v edit-task'></i>
           </button>
           <button type = "button" class = "edit-btn btn hidden">
@@ -86,12 +57,12 @@ window.onload = () => {
           </button>
           <button type = "button" class = "delete-btn btn hidden" myIndex = ${i}>
             <i class="fa-solid fa-trash-can delete"></i>
-          </button>
+          </button>    
         </div>
       </div>
-
+    
       `;
-      const newListElement = parser.parseFromString(newList, 'text/html').body.firstChild;
+      const newListElement = parser.parseFromString(newList, 'text/html').body.firstElementChild;
       const threeVBtn = newListElement.querySelector('.edit-task');
       const toBeEdited = newListElement.querySelector('.task-label');
 
@@ -109,6 +80,7 @@ window.onload = () => {
         editInput.focus();
       });
 
+      const delBtn = newListElement.querySelector('.delete-btn');
       // editInput.addEventListener('keypress', (e) => {
       //   if (e.key === 'Enter') {
       //     e.preventDefault();
@@ -122,29 +94,16 @@ window.onload = () => {
       //   }
       // });
 
-      const taskCheckBox = newListElement.querySelector('.input-task-class');
-      taskCheckBox.addEventListener('change', (e) => {
-        taskCompleteUpdate(e, i, newListElement);
-      });
-
       // Remove task from the list
-      const delBtn = newListElement.querySelector('.delete-btn');
       delBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        removeTask(i, newListElement);
+        removeTask(e, newListElement);
       });
 
-      // Remove Completed tasks
-      const updatedArray = listArray.filter((todo) => todo.completed === false);
-      remCompTaskBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        clearAllCompleted(i, updatedArray, newListElement);
-      });
-
-      listsContainer.appendChild(newListElement);
+      listsContainer.append(newListElement);
     } // end of for loop
 
-    wrapper.insertBefore(listsContainer, remCompTaskBtn);
+    wrapper.append(listsContainer);
   }; // end of showtask() function
 
   const storedListJSON = localStorage.getItem('listsKey');
